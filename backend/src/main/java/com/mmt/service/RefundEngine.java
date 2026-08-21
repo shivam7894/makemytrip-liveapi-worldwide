@@ -1,0 +1,4 @@
+package com.mmt.service;
+import com.mmt.model.Booking; import com.mmt.repository.BookingRepository; import org.springframework.scheduling.annotation.Scheduled; import org.springframework.stereotype.Service; import java.time.*;
+@Service public class RefundEngine { private final BookingRepository bookings; public RefundEngine(BookingRepository b){bookings=b;}
+ @Scheduled(fixedRate=15000) public void update(){ LocalDateTime now=LocalDateTime.now(); for(Booking b:bookings.findAll()){ if("CANCELLED".equals(b.getStatus()) && "PENDING".equals(b.getRefundStatus()) && b.getCancelledAt()!=null && b.getCancelledAt().plusSeconds(30).isBefore(now)){ b.setRefundStatus("PROCESSED"); bookings.save(b); } else if("CANCELLED".equals(b.getStatus()) && "PROCESSED".equals(b.getRefundStatus()) && b.getCancelledAt()!=null && b.getCancelledAt().plusSeconds(60).isBefore(now)){ b.setRefundStatus("COMPLETED"); bookings.save(b); } } } }
